@@ -1,0 +1,6 @@
+ts.md
+.env
+.venv
+.vscode
+
+/data/*

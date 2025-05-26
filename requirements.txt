@@ -1,0 +1,44 @@
+# Core ML and Time Series
+torch
+transformers
+chronos-forecasting
+
+# Data Processing
+pandas
+numpy
+pyarrow
+scipy
+
+# API Framework
+fastapi
+uvicorn[standard]
+pydantic
+
+# HTTP and Data Download
+requests
+aiohttp
+
+# Configuration and Environment
+python-dotenv
+pyyaml
+
+# Visualization and Frontend
+plotly
+streamlit
+
+# Utilities
+python-dateutil
+tqdm
+
+# Testing
+pytest
+pytest-asyncio
+httpx
+
+# Development Tools
+black
+flake8
+mypy
+
+# Production
+gunicorn
