@@ -8,6 +8,9 @@ pandas
 numpy
 pyarrow
 scipy
+seaborn
+matplotlib
+plotly
 
 # API Framework
 fastapi
