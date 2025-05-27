@@ -3,4 +3,5 @@ ts.md
 .venv
 .vscode
 
-/data/*
+/data/raw
+/data/model_cache
