@@ -5,3 +5,4 @@ ts.md
 
 /data/raw
 /data/model_cache
+src/__pycache__

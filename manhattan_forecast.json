@@ -1,0 +1,40 @@
+{
+  "zip_code": "10001",
+  "zip_info": {
+    "RegionID": "61615",
+    "SizeRank": "4444",
+    "RegionName": "10001",
+    "RegionType": "zip",
+    "StateName": "NY",
+    "State": "NY",
+    "City": "New York",
+    "Metro": "New York-Newark-Jersey City, NY-NJ-PA",
+    "CountyName": "New York County"
+  },
+  "data_points": 304,
+  "data_start_date": "2000-01-31 00:00:00",
+  "data_end_date": "2025-04-30 00:00:00",
+  "predictions": [
+    {
+      "forecast_months": 6,
+      "current_value": 1693336.0669741854,
+      "predicted_value": 1683454.5,
+      "change_amount": -9881.566974185407,
+      "change_percent": -0.5835561627080167,
+      "confidence_interval": [
+        1635634.125,
+        1706325.85
+      ],
+      "confidence_level": 0.8,
+      "standard_deviation": 96361.03125
+    }
+  ],
+  "model_info": {
+    "model_name": "amazon/chronos-t5-small",
+    "device": "cpu",
+    "cache_dir": "data/model_cache",
+    "max_context_length": 512,
+    "min_history_points": 12,
+    "is_loaded": true
+  }
+}
