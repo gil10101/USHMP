@@ -127,8 +127,6 @@ MAX_CONCURRENT_REQUESTS = config.get("max_concurrent_requests", 10)
 ZHVI_DATA_PATH = config.get("zhvi_file", "./data/raw/zhvi_zip.csv", "data")
 PROCESSED_DATA_DIR = config.get("processed_data_dir", "./data/processed/")
 RAW_DATA_DIR = config.get("raw_data_dir", "./data/raw/")
-MIN_DATA_MONTHS = config.get("min_data_points", 24, "data")
-DATA_CACHE_DAYS = config.get("data_cache_days", 7)
 
 # =============================================================================
 # LOGGING CONFIGURATION
@@ -146,14 +144,7 @@ DEFAULT_FORECAST_HORIZONS = config.get("forecast_horizons", [3, 6, 12], "model")
 DEFAULT_CONFIDENCE_LEVEL = config.get("confidence_level", 0.8)
 MAX_FORECAST_HORIZON = config.get("max_forecast_horizon", 24)
 
-# =============================================================================
-# FEATURE FLAGS
-# =============================================================================
 
-ENABLE_BATCH_PREDICTIONS = config.get("enable_batch_predictions", True)
-ENABLE_MODEL_WARMUP = config.get("enable_model_warmup", True)
-ENABLE_DATA_VALIDATION = config.get("enable_data_validation", True)
-DEVELOPMENT_MODE = config.get("development_mode", True)
 
 
 def setup_logging(level: str = LOG_LEVEL, log_file: str = LOG_FILE) -> None:

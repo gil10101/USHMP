@@ -11,7 +11,6 @@ import logging
 from typing import Optional, Dict, Any, List, Tuple
 import pandas as pd
 import numpy as np
-from pathlib import Path
 
 from utils import validate_zip_code, ValidationError
 
