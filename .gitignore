@@ -6,3 +6,9 @@ ts.md
 /data/raw
 /data/model_cache
 src/__pycache__
+/config/__pycache__
+/config/development.yaml
+/config/production.yaml
+/config/staging.yaml
+/config/testing.yaml
+/config/README.md

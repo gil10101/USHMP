@@ -1,47 +1,63 @@
 # Core ML and Time Series
-torch
-transformers
-chronos-forecasting
+torch>=2.0.0
+transformers>=4.30.0
+chronos-forecasting>=1.0.0
 
 # Data Processing
-pandas
-numpy
-pyarrow
-scipy
-seaborn
-matplotlib
-plotly
+pandas>=1.5.0
+numpy>=1.24.0
+pyarrow>=12.0.0
+scipy>=1.10.0
+seaborn>=0.12.0
+matplotlib>=3.6.0
+plotly>=5.15.0
+scikit-learn>=1.3.0
 
 # API Framework
-fastapi
-uvicorn[standard]
-pydantic
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
 
 # HTTP and Data Download
-requests
-aiohttp
+requests>=2.31.0
+aiohttp>=3.8.0
 
 # Configuration and Environment
-python-dotenv
-pyyaml
+python-dotenv>=1.0.0
+pyyaml>=6.0.0
+
+# System Monitoring and Validation
+psutil>=5.9.0
 
 # Visualization and Frontend
-plotly
-streamlit
+streamlit>=1.25.0
+
+# Database Support
+sqlalchemy>=2.0.0
+alembic>=1.12.0
 
 # Utilities
-python-dateutil
-tqdm
+python-dateutil>=2.8.0
+tqdm>=4.65.0
 
 # Testing
-pytest
-pytest-asyncio
-httpx
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.24.0
+pytest-cov>=4.1.0
 
 # Development Tools
-black
-flake8
-mypy
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+isort>=5.12.0
+pre-commit>=3.3.0
 
-# Production
-gunicorn
+# Production and Deployment
+gunicorn>=21.0.0
+docker>=6.1.0
+
+# Logging and Monitoring
+structlog>=23.1.0
+prometheus-client>=0.17.0

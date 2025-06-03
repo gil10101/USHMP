@@ -1,0 +1,122 @@
+# Default Configuration for Home Price Prediction System
+# This serves as the base configuration, with environment-specific overrides
+
+# Application Environment
+environment: "development"
+debug: false
+
+# Model Configuration
+model:
+  name: "amazon/chronos-t5-small"
+  device: "auto"  # auto, cpu, cuda, mps
+  torch_dtype: "float32"  # float16, bfloat16, float32
+  
+  # Forecasting Parameters
+  forecast_horizons_months: [3, 6, 12, 24]
+  max_history_months: 120
+  min_history_months: 24
+  
+  # Performance Settings
+  batch_size: 32
+  num_samples: 20
+  confidence_levels: [0.5, 0.8, 0.9]
+  
+  # Caching
+  cache_predictions: true
+  cache_ttl_hours: 24
+
+# Data Configuration
+data:
+  # Data Sources
+  zhvi_data_url: "https://files.zillowstatic.com/research/public_csvs/zhvi/Zip_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv"
+  raw_data_file: "data/raw/zhvi_zip.csv"
+  
+  # Data Quality & Validation
+  min_data_points_required: 24
+  max_missing_ratio: 0.1
+  outlier_detection_method: "iqr"  # iqr, zscore, isolation_forest
+  outlier_threshold: 3.0
+  
+  # Data Processing
+  seasonal_adjustment: true
+  trend_removal: false
+  normalization_method: "min_max"  # min_max, z_score, robust
+  
+  # Storage Format
+  processed_data_format: "parquet"  # parquet, csv, feather
+  compression: "snappy"
+
+# API Configuration
+api:
+  # Server Settings
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1
+  
+  # Request Handling
+  max_request_size: 16777216  # 16MB in bytes
+  request_timeout_seconds: 300
+  rate_limit_requests_per_minute: 100
+  
+  # CORS Settings
+  cors_origins: ["*"]
+  cors_allow_credentials: true
+  
+  # API Documentation
+  title: "Home Price Prediction API"
+  description: "Advanced time series forecasting for residential real estate prices using Amazon Chronos-T5"
+  version: "1.0.0"
+
+# Database Configuration (Optional)
+database:
+  url: null
+  driver: "sqlite"
+  pool_size: 5
+  max_overflow: 10
+  pool_timeout_seconds: 30
+
+# Monitoring & Observability
+monitoring:
+  enable_metrics: true
+  metrics_port: 8001
+  health_check_interval_seconds: 30
+  enable_profiling: false
+  slow_query_threshold_seconds: 1.0
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
+  date_format: "%Y-%m-%d %H:%M:%S"
+  
+  # Output Channels
+  console_enabled: true
+  file_enabled: true
+  log_file_path: "logs/app.log"
+  
+  # Log Rotation
+  max_log_size_mb: 100
+  backup_count: 5
+
+# Security Configuration
+security:
+  # API Security
+  api_key_required: false
+  api_key_header: "X-API-Key"
+  
+  # Rate Limiting
+  enable_rate_limiting: true
+  
+  # Input Validation
+  max_zip_codes_per_request: 10
+  allowed_zip_code_pattern: "^\\d{5}(-\\d{4})?$"
+
+# Path Configuration
+paths:
+  data_dir: "data"
+  raw_data_dir: "data/raw"
+  processed_data_dir: "data/processed"
+  model_cache_dir: "data/model_cache"
+  output_dir: "outputs"
+  log_dir: "logs"
+  temp_dir: "temp" 
