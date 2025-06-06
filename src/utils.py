@@ -11,6 +11,7 @@ from typing import Dict, Any, Optional, Union, List
 from pathlib import Path
 import yaml
 from dotenv import load_dotenv
+import numpy as np
 
 # Load environment variables from .env file
 load_dotenv()
@@ -304,30 +305,28 @@ class ValidationError(Exception):
 
 def validate_time_series_data(data: List[float], min_points: int = MIN_HISTORY_POINTS) -> None:
     """
-    Validate time series data.
+    Validate time series data quality.
     
     Args:
-        data: Time series data
-        min_points: Minimum number of data points required
+        data: Time series data points
+        min_points: Minimum required data points
         
     Raises:
-        ValidationError: If data is invalid
+        ValidationError: If data validation fails
     """
-    if not data:
-        raise ValidationError("Time series data cannot be empty")
-    
     if len(data) < min_points:
-        raise ValidationError(f"Time series must have at least {min_points} data points, got {len(data)}")
+        raise ValidationError(f"Insufficient data points: {len(data)} < {min_points}")
     
     # Check for all NaN values
-    import math
-    valid_points = [x for x in data if not math.isnan(x)]
-    if len(valid_points) < min_points:
-        raise ValidationError(f"Time series must have at least {min_points} valid (non-NaN) data points")
+    valid_data = [x for x in data if not (isinstance(x, float) and np.isnan(x))]
+    if len(valid_data) == 0:
+        raise ValidationError("All data points are NaN")
     
-    # Check for negative values (home prices should be positive)
-    if any(x <= 0 for x in valid_points):
-        raise ValidationError("Home prices must be positive values")
+    # Check for negative values (prices should be positive)
+    if any(x <= 0 for x in valid_data):
+        raise ValidationError("Time series contains non-positive values")
+    
+    logger.debug(f"Time series validation passed: {len(data)} points, {len(valid_data)} valid")
 
 
 # Constants for data processing
@@ -423,5 +422,42 @@ METRO_ZIP_RANGES = {
     "denver": [(80201, 80299)],
     "baltimore": [(21201, 21298)]
 }
+
+def load_config(environment=None, config_path=None):
+    """
+    Load application configuration.
+    
+    This is a convenience function that imports and calls the load_config function
+    from the settings module.
+    
+    Args:
+        environment: Environment to load (optional)
+        config_path: Path to config file (optional)
+        
+    Returns:
+        AppConfig: Application configuration object
+    """
+    try:
+        # Import here to avoid circular imports
+        from settings import load_config as _load_config
+        return _load_config(environment=environment, config_path=config_path)
+    except ImportError:
+        logger.warning("Settings module not found, using fallback configuration")
+        # Return a simple configuration object if settings module is not available
+        class FallbackConfig:
+            def __init__(self):
+                self.environment = "development"
+                self.data = type('obj', (object,), {'raw_data_file': './data/raw/zhvi_zip.csv'})()
+                self.model = type('obj', (object,), {
+                    'name': 'amazon/chronos-t5-small', 
+                    'device': 'auto',
+                    'forecast_horizons_months': [3, 6, 12],
+                    'num_samples': 20
+                })()
+                self.paths = type('obj', (object,), {'model_cache_dir': './data/model_cache/'})()
+                self.api = type('obj', (object,), {'host': '0.0.0.0', 'port': 8000})()
+                self.logging = type('obj', (object,), {'level': 'INFO'})()
+        
+        return FallbackConfig()
 
 

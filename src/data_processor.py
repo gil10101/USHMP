@@ -12,7 +12,14 @@ from typing import Optional, Dict, Any, List, Tuple
 import pandas as pd
 import numpy as np
 
-from utils import validate_zip_code, ValidationError
+try:
+    from utils import validate_zip_code, ValidationError
+except ImportError:
+    # Fallback for when imported from notebook
+    import sys
+    import os
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from utils import validate_zip_code, ValidationError
 
 logger = logging.getLogger(__name__)
 

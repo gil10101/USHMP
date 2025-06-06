@@ -14,14 +14,28 @@ import pandas as pd
 import warnings
 from contextlib import contextmanager
 
-from .data_processor import ZillowDataProcessor
-from .model import ChronosT5Model
-from .utils import (
-    validate_zip_code, validate_forecast_horizon, validate_confidence_level,
-    format_currency, calculate_percentage_change, ValidationError,
-    ZHVI_DATA_PATH, DEFAULT_FORECAST_HORIZONS, DEFAULT_CONFIDENCE_LEVEL,
-    MIN_HISTORY_POINTS, MAX_FORECAST_HORIZON, MODEL_CACHE_DIR
-)
+try:
+    from data_processor import ZillowDataProcessor
+    from model import ChronosT5Model
+    from utils import (
+        validate_zip_code, validate_forecast_horizon, validate_confidence_level,
+        format_currency, calculate_percentage_change, ValidationError,
+        ZHVI_DATA_PATH, DEFAULT_FORECAST_HORIZONS, DEFAULT_CONFIDENCE_LEVEL,
+        MIN_HISTORY_POINTS, MAX_FORECAST_HORIZON, MODEL_CACHE_DIR
+    )
+except ImportError:
+    # Fallback for when imported from notebook
+    import sys
+    import os
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from data_processor import ZillowDataProcessor
+    from model import ChronosT5Model
+    from utils import (
+        validate_zip_code, validate_forecast_horizon, validate_confidence_level,
+        format_currency, calculate_percentage_change, ValidationError,
+        ZHVI_DATA_PATH, DEFAULT_FORECAST_HORIZONS, DEFAULT_CONFIDENCE_LEVEL,
+        MIN_HISTORY_POINTS, MAX_FORECAST_HORIZON, MODEL_CACHE_DIR
+    )
 
 logger = logging.getLogger(__name__)
 
