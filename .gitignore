@@ -12,3 +12,4 @@ src/__pycache__
 /config/staging.yaml
 /config/testing.yaml
 /config/README.md
+/notebooks/data/model_cache

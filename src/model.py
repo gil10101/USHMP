@@ -93,6 +93,9 @@ class ChronosT5Model:
             
         Returns:
             Preprocessed tensor ready for model input
+            
+        Raises:
+            ValueError: If input data is invalid or insufficient
         """
         # Convert to numpy array
         if isinstance(time_series, pd.Series):
@@ -100,23 +103,47 @@ class ChronosT5Model:
         elif isinstance(time_series, list):
             ts_array = np.array(time_series)
         else:
-            ts_array = time_series
+            ts_array = time_series.copy()
         
-        # Remove NaN values - ensure we have float64 array
+        # Handle empty input
+        if len(ts_array) == 0:
+            raise ValueError(
+                f"Time series is empty. Need at least {self.min_history_points} data points."
+            )
+        
+        # Ensure we have float64 array and remove NaN values
         ts_array = ts_array.astype(np.float64)
+        original_length = len(ts_array)
         ts_array = ts_array[~np.isnan(ts_array)]
         
+        # Check if we lost too many points due to NaN removal
+        if len(ts_array) < original_length * 0.7:
+            logger.warning(f"Removed {original_length - len(ts_array)} NaN values from time series")
+        
+        # Validate minimum length
         if len(ts_array) < self.min_history_points:
             raise ValueError(
                 f"Time series too short. Need at least {self.min_history_points} "
                 f"data points, got {len(ts_array)}"
             )
         
+        # Validate that values are positive (for home prices)
+        if np.any(ts_array <= 0):
+            raise ValueError("Time series contains non-positive values")
+        
+        # Check for extreme outliers that might indicate data quality issues
+        q1, q3 = np.percentile(ts_array, [25, 75])
+        iqr = q3 - q1
+        outlier_threshold = 3 * iqr
+        outliers = np.abs(ts_array - np.median(ts_array)) > outlier_threshold
+        if np.sum(outliers) > len(ts_array) * 0.1:  # More than 10% outliers
+            logger.warning(f"Detected {np.sum(outliers)} potential outliers in time series")
+        
         # Truncate to max context length if needed
         max_len = max_length or self.max_context_length
         if len(ts_array) > max_len:
             ts_array = ts_array[-max_len:]
-            logger.warning(f"Truncated time series to last {max_len} points")
+            logger.info(f"Truncated time series to last {max_len} points")
         
         # Convert to tensor
         return torch.tensor(ts_array, dtype=torch.float32)
@@ -143,12 +170,22 @@ class ChronosT5Model:
             
         Returns:
             Dictionary containing forecast statistics
+            
+        Raises:
+            ValueError: If inputs are invalid
+            RuntimeError: If model prediction fails
         """
         if self.pipeline is None:
             self.load_model()
         
+        # Validate forecast horizon
+        if forecast_horizon <= 0:
+            raise ValueError(f"Forecast horizon must be positive, got {forecast_horizon}")
+        if forecast_horizon > 24:  # Reasonable limit for monthly forecasts
+            logger.warning(f"Large forecast horizon ({forecast_horizon}) may reduce accuracy")
+        
         try:
-            # Preprocess input
+            # Preprocess input - this handles validation
             context = self.preprocess_time_series(time_series)
             
             logger.info(
@@ -190,9 +227,15 @@ class ChronosT5Model:
                 "num_samples": num_samples
             }
             
-        except Exception as e:
-            logger.error(f"Prediction failed: {str(e)}")
+        except ValueError as e:
+            # Re-raise validation errors with clear context
+            logger.error(f"Input validation failed: {str(e)}")
             raise
+        except Exception as e:
+            # Handle unexpected model errors
+            error_msg = f"Model prediction failed: {str(e)}"
+            logger.error(error_msg)
+            raise RuntimeError(error_msg) from e
     
     def predict_single_value(
         self,
@@ -210,29 +253,53 @@ class ChronosT5Model:
             
         Returns:
             Dictionary with point forecast and confidence interval
+            
+        Raises:
+            ValueError: If inputs are invalid
+            RuntimeError: If model prediction fails
         """
-        # Get full forecast
-        forecast_result = self.predict(time_series, forecast_horizon)
+        # Validate confidence level
+        if not 0 < confidence_level < 1:
+            raise ValueError(f"Confidence level must be between 0 and 1, got {confidence_level}")
         
-        # Extract final period forecast
-        final_mean = forecast_result["mean"][-1]
-        final_std = forecast_result["std"][-1]
-        
-        # Calculate confidence interval
-        alpha = 1 - confidence_level
-        lower_percentile = (alpha / 2) * 100
-        upper_percentile = (1 - alpha / 2) * 100
-        
-        samples = np.array(forecast_result["samples"])[:, -1]  # Final period samples
-        lower_bound = np.percentile(samples, lower_percentile)
-        upper_bound = np.percentile(samples, upper_percentile)
-        
-        return {
-            "predicted_value": final_mean,
-            "confidence_interval": [lower_bound, upper_bound],
-            "confidence_level": confidence_level,
-            "std": final_std
-        }
+        try:
+            # Get full forecast
+            forecast_result = self.predict(time_series, forecast_horizon)
+            
+            # Extract final period forecast (if horizon > 1, take the last prediction)
+            final_mean = forecast_result["mean"][-1] if forecast_horizon > 1 else forecast_result["mean"][0]
+            final_std = forecast_result["std"][-1] if forecast_horizon > 1 else forecast_result["std"][0]
+            
+            # Calculate confidence interval
+            alpha = 1 - confidence_level
+            lower_percentile = (alpha / 2) * 100
+            upper_percentile = (1 - alpha / 2) * 100
+            
+            samples = np.array(forecast_result["samples"])
+            if forecast_horizon > 1:
+                final_samples = samples[:, -1]  # Final period samples
+            else:
+                final_samples = samples[:, 0]  # Single period samples
+                
+            lower_bound = np.percentile(final_samples, lower_percentile)
+            upper_bound = np.percentile(final_samples, upper_percentile)
+            
+            return {
+                "predicted_value": final_mean,
+                "mean_forecast": final_mean,  # Alternative key for backward compatibility
+                "confidence_interval": [lower_bound, upper_bound],
+                "confidence_level": confidence_level,
+                "std": final_std
+            }
+            
+        except (ValueError, RuntimeError):
+            # Re-raise validation and model errors as-is
+            raise
+        except Exception as e:
+            # Handle unexpected errors
+            error_msg = f"Single value prediction failed: {str(e)}"
+            logger.error(error_msg)
+            raise RuntimeError(error_msg) from e
     
     def batch_predict(
         self,
